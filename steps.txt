@@ -8,3 +8,11 @@
                         2- notemodel
 
                 npm i jsonwebtoken
+
+__________________________________________________
+
+1- events 
+2- web socket--> chat, Notifcations
+3- stream 
+4- multer --> uploading files 
+5- schedaule

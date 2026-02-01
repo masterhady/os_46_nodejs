@@ -5,3 +5,8 @@ export const hashPass = (req,res,next) => {
     req.body.password = bcrypt.hashSync(req.body.password,8)
     next()
 }
+
+
+// bhjhvjhvhfvjherfefbhef%^%^&%^&   === 1234
+
+// token -->dfhbvjb fhvbjdfhbvjhbefv --> {} --> decode., decode.name 

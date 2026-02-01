@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import {noteModel} from "./note.model.js";
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -39,6 +39,11 @@ const userSchema = new mongoose.Schema({
 // timestamp --> created_at, updated_at 
 
 // model --> table 
+
+userSchema.pre("deleteOne", {document: true}, async function(){
+    await noteModel.deleteMany({createdBy: this._id});
+})
+
 
 const userModel = mongoose.model("User",userSchema )
 export default userModel;

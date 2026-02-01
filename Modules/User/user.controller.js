@@ -1,46 +1,62 @@
 import userModel from "../../Database/Models/user.model.js"
 import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
+import jwt, { decode } from "jsonwebtoken"
+import sendEmail from "../../Email/email.js"
+import catchError from "../../Middleware/catchError.js"
 const signup = async (req,res) => {
-    // let user =  new userModel(req.body)
-    // let foundUser = await userModel.findOne({email: req.body.email})
-    // if(foundUser){
-    //     res.status(409).json({message: "email already exist"})
-    // }else{
-        // req.body.password = bcrypt.hashSync(req.body.password,8)
-        // console.log(req.body.password)
-        let addUser = await userModel.insertMany(req.body) // data save db 
-        // let addUser = await user.save()
-        addUser[0].password = undefined // remove object
-        res.status(201).json({message: "created", data: addUser})
-    // }
-   
+    // his dat --> email --> send email --> db --> confirm
+    let addUser = await userModel.insertMany(req.body) // data save db 
+    sendEmail(req.body.email) // 
+    addUser[0].password = undefined // remove object
+    res.status(201).json({message: "created", data: addUser})
 }
 
 
-const signin  = async (req,res) => {
-    // console.log(foundUser, "new user ")
-    // res.send("signin")
-    let foundUser = await userModel.findOne({email: req.body.email})
-    // if (foundUser){
-        // verify pass
+const signin  = catchError( async (req,res) => {
+    // let foundUser = await userModel.findOne({email: req.body.email})
+    let foundUser = req.foundUser
        let matchPass =  bcrypt.compareSync(req.body.password, foundUser.password)
        if(matchPass){
-        // create token 
         let token = jwt.sign({_id: foundUser.id, role: foundUser.role, name: foundUser.name }, "iti")
-            res.status(200).json({message: "Welcome in our app", data: foundUser, token: token})
+            if(foundUser.isConfirmed == false){
+                return res.status(401).json({message: "Please verify your account"})
+            }
+
+        res.status(200).json({message: "Welcome in our app", data: foundUser, token: token})
        }else{
-            res.status(422).json({message: " invalid password"})
+            res.status(422).json({message: "invalid password or email"})
        }
-    // }else{
-    //     res.status(404).json({message: "User not found, please signup"})
-    // }
+}
+)
+
+const deleteUser = catchError( async(req,res) => {
+    const id = req.params.id
+    const deletedUser = await userModel.findByIdAndDelete(id)
+    await deletedUser.deleteOne()   // call the hook
+    res.status(200).json({message: "deleted", data: deletedUser})
+}
+)
+
+const verifyAccount = async (req,res) => {
+    jwt.verify(req.params.email, "myEmail", async(err, decode)=> {
+        if(err){
+            return res.status(401).json({message: "invalid token"})
+        }
+        await userModel.findOneAndUpdate({email: decode}, {isConfirmed: true})
+        res.status(200).json({message: "verified"})
+    })
+
+    // const email = req.params.email
+    // console.log(email)
+    // res.json({email: email})
 }
 
 
 export {
     signup,
-    signin
+    signin,
+    deleteUser,
+    verifyAccount
 }
 
 /// email, name, age, password

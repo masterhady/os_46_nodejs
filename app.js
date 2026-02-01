@@ -4,12 +4,14 @@ import userModel from "./Database/Models/user.model.js";
 import userRouter from "./Modules/User/user.routes.js";
 import { noteModel } from "./Database/Models/note.model.js";
 import noteRouter from "./Modules/Note/note.routes.js";
+import sendEmail from "./Email/email.js";
 
 const app = express();
 app.use(express.json());
 app.use(userRouter);
 app.use(noteRouter)
 
+// sendEmail();
 dbConnection;
 userModel;
 noteModel;

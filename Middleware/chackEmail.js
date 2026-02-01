@@ -13,6 +13,7 @@ export const checkEmail =async (req,res,next) => {
     }
     else{
          if(foundUser) {
+            req.foundUser = foundUser
             next();
          }else{
             return res.status(422).json({message: "User not found, please signup"})
